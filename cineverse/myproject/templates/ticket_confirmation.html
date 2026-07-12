@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Booking Confirmed - {{ booking.booking_id }} - CineVerse{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center mb-4">
+        <div class="mb-3 text-success fs-1">
+            <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <h2 class="fw-bold">Booking Confirmed!</h2>
+        <p class="text-secondary">Your ticket has been booked successfully. A confirmation email has been sent to <strong>{{ booking.customer_email }}</strong>.</p>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6 mb-5">
+        
+        <!-- Styled Movie Ticket -->
+        <div class="ticket-card shadow-lg">
+            <div class="ticket-header">
+                <h4 class="fw-bold mb-1">🎬 CineVerse</h4>
+                <small class="text-light-50 tracking-wider">BOOKING CONFIRMED</small>
+            </div>
+            <div class="ticket-body">
+                <!-- Movie Info -->
+                <div class="text-center mb-3">
+                    <span class="text-muted small uppercase">Movie Name</span>
+                    <h4 class="fw-bold text-white mb-0">{{ booking.showtime.movie.title }}</h4>
+                </div>
+
+                <div class="row text-center g-2 my-2">
+                    <div class="col-4">
+                        <span class="text-muted d-block small">Screen</span>
+                        <span class="fw-bold text-white">{{ booking.showtime.screen }}</span>
+                    </div>
+                    <div class="col-4">
+                        <span class="text-muted d-block small">Date</span>
+                        <span class="fw-bold text-white">{{ booking.showtime.date|date:"d F" }}</span>
+                    </div>
+                    <div class="col-4">
+                        <span class="text-muted d-block small">Time</span>
+                        <span class="fw-bold text-white">{{ booking.showtime.time|time:"h:i" }} {{ booking.showtime.time|time:"A" }}</span>
+                    </div>
+                </div>
+
+                <div class="ticket-dashed-line"></div>
+
+                <div class="row align-items-center">
+                    <div class="col-6">
+                        <div class="mb-2">
+                            <span class="text-muted d-block small">Seats</span>
+                            <span class="fw-bold text-info fs-5">{{ seats_space_separated }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-muted d-block small">Booking ID</span>
+                            <span class="fw-bold text-white">{{ booking.booking_id }}</span>
+                        </div>
+                        <div>
+                            <span class="text-muted d-block small">Amount Paid</span>
+                            <span class="fw-bold text-rose fs-5">${{ booking.total_price }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- QR Code base64 embedded -->
+                    <div class="col-6 text-center">
+                        <div class="ticket-qr d-inline-block">
+                            {% if qr_base64 %}
+                            <img src="data:image/png;base64,{{ qr_base64 }}" alt="QR Code">
+                            {% endif %}
+                        </div>
+                        <small class="text-muted d-block" style="font-size: 0.65rem;">Scan at entrance</small>
+                    </div>
+                </div>
+
+                <div class="ticket-dashed-line"></div>
+                
+                <div class="text-center">
+                    <small class="text-secondary">CineVerse Cinemas &copy; 2026. Keep this ticket safe.</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ticket Actions -->
+        <div class="d-flex justify-content-center gap-3 mt-4">
+            <a href="{% url 'download_ticket_pdf' booking.booking_id %}" class="btn btn-primary-custom px-4 py-2">
+                <i class="bi bi-file-earmark-pdf-fill me-2"></i> Save PDF
+            </a>
+            <button onclick="window.print()" class="btn btn-outline-secondary px-4 py-2">
+                <i class="bi bi-printer-fill me-2"></i> Print
+            </button>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

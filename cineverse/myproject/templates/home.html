@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}CineVerse - Book Movies, Share Reviews, Experience Cinema{% endblock %}
+
+{% block content %}
+
+<!-- 1. Hero Auto-Sliding Banner -->
+{% if banner_movies %}
+<div id="heroBannerCarousel" class="carousel slide mb-5 rounded-4 overflow-hidden shadow-lg border border-secondary" data-bs-ride="carousel" data-bs-interval="4000">
+    <div class="carousel-indicators">
+        {% for movie in banner_movies %}
+        <button type="button" data-bs-target="#heroBannerCarousel" data-bs-slide-to="{{ forloop.counter0 }}" class="{% if forloop.first %}active{% endif %}" aria-current="{% if forloop.first %}true{% endif %}"></button>
+        {% endfor %}
+    </div>
+    <div class="carousel-inner" style="max-height: 480px;">
+        {% for movie in banner_movies %}
+        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+            <div style="position: relative; padding-bottom: 40%; min-height: 250px; background-color: #000;">
+                {% if movie.banner %}
+                <img src="{{ movie.banner.url }}" class="d-block w-100 position-absolute top-0 start-0 h-100" style="object-fit: cover; opacity: 0.65;" alt="{{ movie.title }}" onerror="this.onerror=null; this.src='https://placehold.co/1200x480/0b0f19/ffffff?text={{ movie.title|urlencode }}+Banner';">
+                {% elif movie.poster %}
+                <img src="{{ movie.poster.url }}" class="d-block w-100 position-absolute top-0 start-0 h-100" style="object-fit: cover; opacity: 0.45; filter: blur(5px);" alt="{{ movie.title }}" onerror="this.onerror=null; this.src='https://placehold.co/300x450/1e293b/ffffff?text={{ movie.title|urlencode }}';">
+                {% endif %}
+                <div class="carousel-caption text-start d-flex flex-column justify-content-end h-100 pb-4 pb-md-5" style="left: 8%; right: 8%;">
+                    <span class="badge bg-danger mb-2 px-3 py-2 text-uppercase font-weight-bold" style="width: fit-content; font-size: 0.75rem; letter-spacing: 1px;">Trending</span>
+                    <h1 class="display-4 fw-bold text-white mb-2">{{ movie.title }}</h1>
+                    <p class="lead text-light d-none d-md-block mb-3" style="max-width: 600px;">{{ movie.synopsis|truncatewords:20 }}</p>
+                    <div class="mb-2">
+                        <span class="text-warning fw-bold"><i class="bi bi-star-fill"></i> {{ movie.average_rating }}</span>
+                        <span class="text-white-50 mx-2">|</span>
+                        <span class="text-light">{{ movie.runtime }} mins</span>
+                        <span class="text-white-50 mx-2">|</span>
+                        <span class="text-light">{{ movie.language }}</span>
+                    </div>
+                    <a href="{% url 'movie_detail' movie.id %}" class="btn btn-primary-custom px-4 py-2 mt-2" style="width: fit-content;">Book Tickets</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#heroBannerCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#heroBannerCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+{% endif %}
+
+<!-- 2. Filters & Categories -->
+<div id="movies-section" class="row align-items-center mb-4">
+    <!-- Genre Filter pills -->
+    <div class="col-lg-8 mb-3 mb-lg-0">
+        <div class="d-flex flex-wrap gap-2">
+            <a href="?genre=all&category={{ active_category }}&q={{ active_query }}#movies-section" class="btn btn-sm {% if active_genre == 'all' or not active_genre %}btn-primary-custom{% else %}btn-outline-secondary text-primary-theme-light{% endif %}">
+                All Genres
+            </a>
+            {% for genre in genres %}
+            <a href="?genre={{ genre.name }}&category={{ active_category }}&q={{ active_query }}#movies-section" class="btn btn-sm {% if active_genre == genre.name %}btn-primary-custom{% else %}btn-outline-secondary text-primary-theme-light{% endif %}">
+                {{ genre.name }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Category Tabs -->
+    <div class="col-lg-4 text-lg-end">
+        <div class="btn-group btn-group-sm" role="group">
+            <a href="?category=all&genre={{ active_genre }}&q={{ active_query }}#movies-section" class="btn {% if active_category == 'all' or not active_category %}btn-secondary{% else %}btn-outline-secondary{% endif %}">All</a>
+            <a href="?category=currently_playing&genre={{ active_genre }}&q={{ active_query }}#movies-section" class="btn {% if active_category == 'currently_playing' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Currently Playing</a>
+            <a href="?category=coming_soon&genre={{ active_genre }}&q={{ active_query }}#movies-section" class="btn {% if active_category == 'coming_soon' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Coming Soon</a>
+            <a href="?category=trending&genre={{ active_genre }}&q={{ active_query }}#movies-section" class="btn {% if active_category == 'trending' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Trending</a>
+            <a href="?category=top_rated&genre={{ active_genre }}&q={{ active_query }}#movies-section" class="btn {% if active_category == 'top_rated' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">Top Rated</a>
+        </div>
+    </div>
+</div>
+
+<!-- Category Headers -->
+<div class="d-flex align-items-center mb-4">
+    <h3 class="fw-bold mb-0">
+        {% if active_category == 'currently_playing' %}
+            🍿 Currently Playing
+        {% elif active_category == 'coming_soon' %}
+            📅 Coming Soon
+        {% elif active_category == 'trending' %}
+            🔥 Trending Movies
+        {% elif active_category == 'top_rated' %}
+            ⭐ Top Rated Movies
+        {% else %}
+            🎬 Recommended Movies
+        {% endif %}
+    </h3>
+    {% if active_genre and active_genre != 'all' %}
+        <span class="badge bg-secondary ms-3">{{ active_genre }}</span>
+    {% endif %}
+    {% if active_query %}
+        <span class="badge bg-info ms-3">Search: "{{ active_query }}"</span>
+    {% endif %}
+</div>
+
+<!-- 3. Movie Grid -->
+{% if movies %}
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+    {% for movie in movies %}
+    <div class="col">
+        <div class="movie-card">
+            <div class="movie-poster-wrapper">
+                {% if movie.poster %}
+                <img src="{{ movie.poster.url }}" class="movie-poster" alt="{{ movie.title }}" onerror="this.onerror=null; this.src='https://placehold.co/300x420/1e293b/ffffff?text={{ movie.title|urlencode }}';">
+                {% else %}
+                <div class="bg-dark text-secondary d-flex align-items-center justify-content-center movie-poster" style="font-size: 3rem;">
+                    🎬
+                </div>
+                {% endif %}
+                
+                <!-- Average rating display -->
+                <div class="movie-badge-rating">
+                    ★ {{ movie.average_rating|default:"0.0" }}
+                </div>
+
+                <!-- Wishlist heart badge (stored in session) -->
+                {% if movie.id|stringformat:"s" in wishlist_session %}
+                <div class="movie-badge-wishlist wishlist-toggle-btn active" data-movie-id="{{ movie.id }}">
+                    <i class="bi bi-heart-fill"></i>
+                </div>
+                {% else %}
+                <div class="movie-badge-wishlist wishlist-toggle-btn" data-movie-id="{{ movie.id }}">
+                    <i class="bi bi-heart"></i>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="movie-card-body">
+                <h5 class="movie-card-title" title="{{ movie.title }}">{{ movie.title }}</h5>
+                
+                <!-- Genre and Info items -->
+                <div class="movie-meta-item mb-1 text-truncate">
+                    <strong>Genre:</strong> 
+                    {% for genre in movie.genres.all %}
+                        {{ genre.name }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                        General
+                    {% endfor %}
+                </div>
+                <div class="movie-meta-item mb-1">
+                    <strong>Runtime:</strong> {{ movie.runtime }} mins
+                </div>
+                <div class="movie-meta-item mb-1">
+                    <strong>Language:</strong> {{ movie.language }}
+                </div>
+                <div class="movie-meta-item mb-3">
+                    <strong>Release Date:</strong> {{ movie.release_date|date:"d M Y" }}
+                </div>
+
+                <div class="mt-auto">
+                    <a href="{% url 'movie_detail' movie.id %}" class="btn btn-primary-custom w-100">
+                        Book Tickets
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 glass-panel rounded-4 border border-secondary my-4">
+    <i class="bi bi-film text-secondary" style="font-size: 4rem;"></i>
+    <h4 class="mt-3 text-secondary">No Movies Found</h4>
+    <p class="text-muted">We couldn't find any movies matching your current filters or search terms.</p>
+    <a href="{% url 'home' %}" class="btn btn-outline-primary btn-sm mt-2">Clear Filters</a>
+</div>
+{% endif %}
+
+<!-- 4. Recently Viewed Movies (Session-based) -->
+{% if recently_viewed_movies %}
+<div class="mt-5 pt-4 border-top border-secondary">
+    <h4 class="fw-bold mb-4">🕒 Recently Viewed Movies</h4>
+    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3">
+        {% for movie in recently_viewed_movies %}
+        <div class="col">
+            <a href="{% url 'movie_detail' movie.id %}" class="text-decoration-none text-light">
+                <div class="card bg-dark border-secondary h-100 overflow-hidden shadow-sm" style="transition: transform 0.2s;">
+                    {% if movie.poster %}
+                    <img src="{{ movie.poster.url }}" class="card-img-top" style="height: 180px; object-fit: cover;" alt="{{ movie.title }}" onerror="this.onerror=null; this.src='https://placehold.co/300x420/1e293b/ffffff?text={{ movie.title|urlencode }}';">
+                    {% else %}
+                    <div class="bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 180px;">
+                        🎬
+                    </div>
+                    {% endif %}
+                    <div class="card-body p-2 text-center text-truncate">
+                        <small class="fw-bold text-white">{{ movie.title }}</small>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

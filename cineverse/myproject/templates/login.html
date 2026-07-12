@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - CineVerse{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        
+        <div class="glass-panel p-5 rounded-4 border border-secondary shadow-lg mt-4">
+            <div class="text-center mb-4">
+                <h3 class="fw-bold text-white mb-1">🎬 Welcome back</h3>
+                <p class="text-secondary small">Sign in to view your bookings and save movies</p>
+            </div>
+
+            <form method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+                
+                {% if next %}
+                    <input type="hidden" name="next" value="{{ next }}">
+                {% endif %}
+
+                <div class="mb-3">
+                    <label for="username" class="form-label text-secondary small">Username</label>
+                    <input type="text" name="username" id="username" class="form-control bg-dark border-secondary text-white" required autocomplete="username">
+                </div>
+
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between mb-1">
+                        <label for="password" class="form-label text-secondary small mb-0">Password</label>
+                    </div>
+                    <input type="password" name="password" id="password" class="form-control bg-dark border-secondary text-white" required autocomplete="current-password">
+                </div>
+
+                <button type="submit" class="btn btn-primary-custom w-100 py-2.5 fw-bold mb-3">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="text-center mt-3 pt-3 border-top border-secondary">
+                <span class="text-secondary small">Don't have an account?</span>
+                <a href="{% url 'register' %}" class="text-info text-decoration-none small fw-bold">Sign Up</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

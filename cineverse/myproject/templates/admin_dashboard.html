@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - CineVerse{% endblock %}
+
+{% block content %}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+            <h2 class="fw-bold text-white"><i class="bi bi-speedometer2 text-warning me-2"></i> Admin Dashboard</h2>
+            <div class="d-flex gap-2 my-2">
+                <a href="{% url 'admin_movies' %}" class="btn btn-outline-light btn-sm"><i class="bi bi-film"></i> Manage Movies</a>
+                <a href="{% url 'admin_showtimes' %}" class="btn btn-outline-light btn-sm"><i class="bi bi-clock"></i> Manage Showtimes</a>
+                <a href="{% url 'admin_bookings' %}" class="btn btn-outline-light btn-sm"><i class="bi bi-ticket"></i> View Bookings</a>
+                <a href="{% url 'admin_reviews' %}" class="btn btn-outline-light btn-sm"><i class="bi bi-chat-left-text"></i> Moderate Reviews</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-3 mb-5">
+    <!-- Movies Count -->
+    <div class="col">
+        <div class="card bg-dark border-secondary h-100 p-3 text-center shadow-sm">
+            <div class="fs-1 text-info mb-2"><i class="bi bi-film"></i></div>
+            <h3 class="fw-bold text-white mb-0">{{ stats.movies_count }}</h3>
+            <span class="text-secondary small">Total Movies</span>
+        </div>
+    </div>
+    <!-- Bookings Count -->
+    <div class="col">
+        <div class="card bg-dark border-secondary h-100 p-3 text-center shadow-sm">
+            <div class="fs-1 text-primary mb-2"><i class="bi bi-ticket-perforated"></i></div>
+            <h3 class="fw-bold text-white mb-0">{{ stats.bookings_count }}</h3>
+            <span class="text-secondary small">Total Bookings</span>
+        </div>
+    </div>
+    <!-- Today's Revenue -->
+    <div class="col">
+        <div class="card bg-dark border-secondary h-100 p-3 text-center shadow-sm">
+            <div class="fs-1 text-success mb-2"><i class="bi bi-currency-dollar"></i></div>
+            <h3 class="fw-bold text-white mb-0">${{ stats.today_revenue|default:"0.00" }}</h3>
+            <span class="text-secondary small">Today's Revenue</span>
+        </div>
+    </div>
+    <!-- Reviews Count -->
+    <div class="col">
+        <div class="card bg-dark border-secondary h-100 p-3 text-center shadow-sm">
+            <div class="fs-1 text-warning mb-2"><i class="bi bi-chat-left-quote"></i></div>
+            <h3 class="fw-bold text-white mb-0">{{ stats.reviews_count }}</h3>
+            <span class="text-secondary small">Reviews Written</span>
+        </div>
+    </div>
+    <!-- Unique Customers Count -->
+    <div class="col">
+        <div class="card bg-dark border-secondary h-100 p-3 text-center shadow-sm">
+            <div class="fs-1 text-info mb-2"><i class="bi bi-people"></i></div>
+            <h3 class="fw-bold text-white mb-0">{{ stats.customers_count }}</h3>
+            <span class="text-secondary small">Customers</span>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row g-4 mb-4">
+    <!-- Bookings per Movie Chart -->
+    <div class="col-lg-6">
+        <div class="glass-panel p-4 rounded-4 border border-secondary">
+            <h5 class="fw-bold text-white mb-3"><i class="bi bi-bar-chart-fill text-info me-2"></i> Bookings Per Movie</h5>
+            <div style="height: 300px; position: relative;">
+                <canvas id="bookingsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue / Popular Genres Chart -->
+    <div class="col-lg-6">
+        <div class="glass-panel p-4 rounded-4 border border-secondary">
+            <h5 class="fw-bold text-white mb-3"><i class="bi bi-pie-chart-fill text-warning me-2"></i> Popular Genres</h5>
+            <div style="height: 300px; position: relative;">
+                <canvas id="genresChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revenue per Movie chart -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="glass-panel p-4 rounded-4 border border-secondary">
+            <h5 class="fw-bold text-white mb-3"><i class="bi bi-cash-stack text-success me-2"></i> Revenue by Movie</h5>
+            <div style="height: 320px; position: relative;">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // -------------------------------------------------------------
+    // Bookings Per Movie Chart
+    // -------------------------------------------------------------
+    const bookingsCtx = document.getElementById('bookingsChart').getContext('2d');
+    const bookingsData = {{ charts.bookings_per_movie|safe }};
+    
+    new Chart(bookingsCtx, {
+        type: 'bar',
+        data: {
+            labels: bookingsData.map(d => d.title),
+            datasets: [{
+                label: 'Tickets Sold',
+                data: bookingsData.map(d => d.tickets),
+                backgroundColor: 'rgba(56, 189, 248, 0.6)',
+                borderColor: '#38bdf8',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#1e293b' },
+                    ticks: { color: '#94a3b8' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#94a3b8' }
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // Popular Genres Chart
+    // -------------------------------------------------------------
+    const genresCtx = document.getElementById('genresChart').getContext('2d');
+    const genresData = {{ charts.popular_genres|safe }};
+    
+    new Chart(genresCtx, {
+        type: 'doughnut',
+        data: {
+            labels: genresData.map(d => d.name),
+            datasets: [{
+                data: genresData.map(d => d.count),
+                backgroundColor: [
+                    '#f43f5e', '#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: { color: '#94a3b8' }
+                }
+            }
+        }
+    });
+
+    // -------------------------------------------------------------
+    // Revenue by Movie Chart
+    // -------------------------------------------------------------
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    const revenueData = {{ charts.revenue_per_movie|safe }};
+
+    new Chart(revenueCtx, {
+        type: 'bar',
+        data: {
+            labels: revenueData.map(d => d.title),
+            datasets: [{
+                label: 'Revenue ($)',
+                data: revenueData.map(d => d.revenue),
+                backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                borderColor: '#10b981',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: '#1e293b' },
+                    ticks: { color: '#94a3b8' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#94a3b8' }
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

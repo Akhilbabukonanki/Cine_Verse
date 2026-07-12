@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register Account - CineVerse{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        
+        <div class="glass-panel p-5 rounded-4 border border-secondary shadow-lg mt-4">
+            <div class="text-center mb-4">
+                <h3 class="fw-bold text-white mb-1">🎬 Create Account</h3>
+                <p class="text-secondary small">Join CineVerse to manage bookings and write reviews</p>
+            </div>
+
+            <form method="post" action="{% url 'register' %}">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="reg-username" class="form-label text-secondary small">Username</label>
+                    <input type="text" name="username" id="reg-username" class="form-control bg-dark border-secondary text-white" required autocomplete="username">
+                </div>
+
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label for="reg-fname" class="form-label text-secondary small">First Name</label>
+                        <input type="text" name="first_name" id="reg-fname" class="form-control bg-dark border-secondary text-white" required>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label for="reg-lname" class="form-label text-secondary small">Last Name</label>
+                        <input type="text" name="last_name" id="reg-lname" class="form-control bg-dark border-secondary text-white" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="reg-email" class="form-label text-secondary small">Email Address</label>
+                    <input type="email" name="email" id="reg-email" class="form-control bg-dark border-secondary text-white" required autocomplete="email">
+                </div>
+
+                <div class="mb-4">
+                    <label for="reg-password" class="form-label text-secondary small">Password</label>
+                    <input type="password" name="password" id="reg-password" class="form-control bg-dark border-secondary text-white" required autocomplete="new-password">
+                </div>
+
+                <button type="submit" class="btn btn-primary-custom w-100 py-2.5 fw-bold mb-3">
+                    Create Account
+                </button>
+            </form>
+
+            <div class="text-center mt-3 pt-3 border-top border-secondary">
+                <span class="text-secondary small">Already have an account?</span>
+                <a href="{% url 'login' %}" class="text-info text-decoration-none small fw-bold">Sign In</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

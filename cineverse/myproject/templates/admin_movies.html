@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Movies - CineVerse Admin{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <!-- Back to Dashboard -->
+    <div class="col-12 mb-3">
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Dashboard</a>
+    </div>
+
+    <!-- Add Movie Form (Left Column) -->
+    <div class="col-lg-5 mb-4">
+        <div class="glass-panel p-4 rounded-4 border border-secondary">
+            <h4 class="fw-bold text-white mb-3">🎥 Add New Movie</h4>
+            <form method="post" action="{% url 'admin_movies' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="title" class="form-label text-secondary small">Movie Title</label>
+                    <input type="text" name="title" id="title" class="form-control bg-dark border-secondary text-white" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-secondary small">Genres</label>
+                    <div class="d-flex flex-wrap gap-2 py-1">
+                        {% for genre in genres %}
+                        <div class="form-check form-check-inline bg-dark bg-opacity-50 px-3 py-1 rounded border border-secondary">
+                            <input class="form-check-input" type="checkbox" name="genres" id="g-{{ genre.id }}" value="{{ genre.id }}">
+                            <label class="form-check-label text-white small" for="g-{{ genre.id }}">{{ genre.name }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <small class="text-muted">Or type new genre below:</small>
+                    <input type="text" name="new_genre" class="form-control form-control-sm bg-dark border-secondary text-white mt-1" placeholder="e.g. Documentary">
+                </div>
+
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label for="runtime" class="form-label text-secondary small">Runtime (mins)</label>
+                        <input type="number" name="runtime" id="runtime" class="form-control bg-dark border-secondary text-white" required>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label for="language" class="form-label text-secondary small">Language</label>
+                        <input type="text" name="language" id="language" class="form-control bg-dark border-secondary text-white" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label for="release_date" class="form-label text-secondary small">Release Date</label>
+                        <input type="date" name="release_date" id="release_date" class="form-control bg-dark border-secondary text-white" required>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label for="director" class="form-label text-secondary small">Director</label>
+                        <input type="text" name="director" id="director" class="form-control bg-dark border-secondary text-white" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="cast" class="form-label text-secondary small">Cast (comma separated)</label>
+                    <input type="text" name="cast" id="cast" class="form-control bg-dark border-secondary text-white" placeholder="e.g. Matthew McConaughey, Anne Hathaway" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="trailer_url" class="form-label text-secondary small">YouTube Trailer URL</label>
+                    <input type="url" name="trailer_url" id="trailer_url" class="form-control bg-dark border-secondary text-white" placeholder="e.g. https://www.youtube.com/watch?v=dQw4w9WgXcQ">
+                </div>
+
+                <div class="mb-3">
+                    <label for="synopsis" class="form-label text-secondary small">Synopsis</label>
+                    <textarea name="synopsis" id="synopsis" rows="3" class="form-control bg-dark border-secondary text-white" required></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label for="poster" class="form-label text-secondary small">Poster Image</label>
+                        <input type="file" name="poster" id="poster" class="form-control bg-dark border-secondary text-white" accept="image/*" required>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label for="banner" class="form-label text-secondary small">Banner Image (Hero)</label>
+                        <input type="file" name="banner" id="banner" class="form-control bg-dark border-secondary text-white" accept="image/*">
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <div class="form-check form-switch bg-dark bg-opacity-50 p-2 px-4 rounded border border-secondary">
+                            <input class="form-check-input" type="checkbox" name="is_currently_playing" id="is_playing" checked>
+                            <label class="form-check-label text-white small" for="is_playing">Playing Now</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check form-switch bg-dark bg-opacity-50 p-2 px-4 rounded border border-secondary">
+                            <input class="form-check-input" type="checkbox" name="is_coming_soon" id="is_soon">
+                            <label class="form-check-label text-white small" for="is_soon">Coming Soon</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check form-switch bg-dark bg-opacity-50 p-2 px-4 rounded border border-secondary">
+                            <input class="form-check-input" type="checkbox" name="is_trending" id="is_trend">
+                            <label class="form-check-label text-white small" for="is_trend">Trending</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check form-switch bg-dark bg-opacity-50 p-2 px-4 rounded border border-secondary">
+                            <input class="form-check-input" type="checkbox" name="is_top_rated" id="is_top">
+                            <label class="form-check-label text-white small" for="is_top">Top Rated</label>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" name="add_movie" class="btn btn-primary-custom w-100 py-2.5">
+                    Save Movie
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Movies List (Right Column) -->
+    <div class="col-lg-7">
+        <div class="glass-panel p-4 rounded-4 border border-secondary">
+            <h4 class="fw-bold text-white mb-3">🎬 Movie Catalog ({{ movies.count }})</h4>
+            
+            {% if movies %}
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle mb-0">
+                    <thead>
+                        <tr class="text-secondary small uppercase">
+                            <th>Poster</th>
+                            <th>Title</th>
+                            <th>Runtime</th>
+                            <th>Language</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for movie in movies %}
+                        <tr>
+                            <td>
+                                {% if movie.poster %}
+                                <img src="{{ movie.poster.url }}" class="rounded shadow-sm" style="width: 45px; height: 60px; object-fit: cover;" alt="{{ movie.title }}">
+                                {% else %}
+                                <div class="bg-secondary rounded text-center d-flex align-items-center justify-content-center" style="width: 45px; height: 60px;">🎬</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="fw-bold text-white mb-0">{{ movie.title }}</div>
+                                <span class="text-muted small">
+                                    {% for genre in movie.genres.all %}{{ genre.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                                </span>
+                            </td>
+                            <td>{{ movie.runtime }} mins</td>
+                            <td>{{ movie.language }}</td>
+                            <td class="text-end">
+                                <form method="post" action="{% url 'admin_movies' %}" onsubmit="return confirm('Are you sure you want to delete {{ movie.title }}? This will delete all showtimes and bookings.');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="movie_id" value="{{ movie.id }}">
+                                    <button type="submit" name="delete_movie" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-film fs-2 d-block mb-2"></i> No movies in catalog. Add one on the left.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

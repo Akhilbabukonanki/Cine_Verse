@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Manage Showtimes - CineVerse Admin{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <!-- Back to Dashboard -->
+    <div class="col-12 mb-3">
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Dashboard</a>
+    </div>
+
+    <!-- Add Showtime Form (Left Column) -->
+    <div class="col-lg-5 mb-4">
+        <div class="glass-panel p-4 rounded-4 border border-secondary">
+            <h4 class="fw-bold text-white mb-3">📅 Add Showtime</h4>
+            <form method="post" action="{% url 'admin_showtimes' %}">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="movie_id" class="form-label text-secondary small">Select Movie</label>
+                    <select name="movie_id" id="movie_id" class="form-select bg-dark border-secondary text-white" required>
+                        <option value="" disabled selected>Choose a movie...</option>
+                        {% for movie in movies %}
+                        <option value="{{ movie.id }}">{{ movie.title }} ({{ movie.language }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label for="date" class="form-label text-secondary small">Date</label>
+                        <input type="date" name="date" id="date" class="form-control bg-dark border-secondary text-white" required>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label for="time" class="form-label text-secondary small">Time</label>
+                        <input type="time" name="time" id="time" class="form-control bg-dark border-secondary text-white" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label for="screen" class="form-label text-secondary small">Screen Number</label>
+                        <input type="number" name="screen" id="screen" class="form-control bg-dark border-secondary text-white" min="1" value="1" required>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label for="price" class="form-label text-secondary small">Price per Ticket ($)</label>
+                        <input type="number" name="price" id="price" class="form-control bg-dark border-secondary text-white" min="1" step="0.01" value="12.00" required>
+                    </div>
+                </div>
+
+                <button type="submit" name="add_showtime" class="btn btn-primary-custom w-100 py-2.5">
+                    Schedule Showtime
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Showtimes List (Right Column) -->
+    <div class="col-lg-7">
+        <div class="glass-panel p-4 rounded-4 border border-secondary">
+            <h4 class="fw-bold text-white mb-3">📅 Active Schedules ({{ showtimes.count }})</h4>
+            
+            {% if showtimes %}
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle mb-0">
+                    <thead>
+                        <tr class="text-secondary small uppercase">
+                            <th>Movie</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Screen</th>
+                            <th>Price</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for showtime in showtimes %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-white mb-0">{{ showtime.movie.title }}</div>
+                                <span class="text-muted small">{{ showtime.movie.language }}</span>
+                            </td>
+                            <td>{{ showtime.date|date:"d M Y" }}</td>
+                            <td>{{ showtime.time|time:"h:i" }} {{ showtime.time|time:"A" }}</td>
+                            <td>Screen {{ showtime.screen }}</td>
+                            <td class="text-info">${{ showtime.price }}</td>
+                            <td class="text-end">
+                                <form method="post" action="{% url 'admin_showtimes' %}" onsubmit="return confirm('Delete this showtime? All bookings associated will be deleted.');">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="showtime_id" value="{{ showtime.id }}">
+                                    <button type="submit" name="delete_showtime" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-calendar-event fs-2 d-block mb-2"></i> No showtimes scheduled. Schedule one on the left.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

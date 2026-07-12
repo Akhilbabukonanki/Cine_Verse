@@ -1,0 +1,274 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ movie.title }} - CineVerse{% endblock %}
+
+{% block content %}
+
+<!-- Cinematic Background Hero Header -->
+<div class="details-hero rounded-4 overflow-hidden mb-5 border border-secondary" 
+     style="background-image: url('{% if movie.banner %}{{ movie.banner.url }}{% elif movie.poster %}{{ movie.poster.url }}{% endif %}');">
+    <div class="details-hero-overlay"></div>
+    <div class="details-hero-content text-white">
+        <div class="container px-4">
+            <div class="row align-items-end">
+                <div class="col-md-3 d-none d-md-block">
+                    {% if movie.poster %}
+                    <img src="{{ movie.poster.url }}" class="img-fluid rounded-3 shadow-lg border border-light border-opacity-25" style="max-height: 320px;" alt="{{ movie.title }}" onerror="this.onerror=null; this.src='https://placehold.co/300x450/1e293b/ffffff?text={{ movie.title|urlencode }}';">
+                    {% endif %}
+                </div>
+                <div class="col-md-9">
+                    <h1 class="display-4 fw-bold mb-2">{{ movie.title }}</h1>
+                    <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+                        <span class="badge bg-danger">{{ movie.language }}</span>
+                        {% for genre in movie.genres.all %}
+                        <span class="badge bg-secondary">{{ genre.name }}</span>
+                        {% endfor %}
+                        <span class="text-white-50"><i class="bi bi-clock"></i> {{ movie.runtime }} mins</span>
+                        <span class="text-white-50"><i class="bi bi-calendar-event"></i> Released: {{ movie.release_date|date:"d M Y" }}</span>
+                    </div>
+                    
+                    <div class="d-flex flex-wrap gap-3 align-items-center">
+                        <div class="d-flex align-items-center bg-dark bg-opacity-75 px-3 py-2 rounded-3 border border-secondary">
+                            <span class="fs-4 text-warning me-2"><i class="bi bi-star-fill"></i></span>
+                            <div>
+                                <div class="fw-bold mb-0 text-white fs-5">{{ movie.average_rating|default:"0.0" }} / 5</div>
+                                <small class="text-secondary">{{ movie.review_count }} Reviews</small>
+                            </div>
+                        </div>
+
+                        <!-- YouTube Trailer Modal Play Button -->
+                        {% if movie.trailer_url %}
+                        <button type="button" class="btn btn-outline-light px-4 py-2" data-bs-toggle="modal" data-bs-target="#trailerModal" data-youtube-id="{{ movie.get_youtube_id }}">
+                            <i class="bi bi-play-circle-fill me-2 text-danger"></i> Watch Trailer
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column: Details & Showtimes -->
+    <div class="col-lg-8">
+        <!-- Synopsis Section -->
+        <div class="glass-panel p-4 rounded-4 mb-4 border border-secondary">
+            <h4 class="fw-bold mb-3"><i class="bi bi-card-text me-2 text-rose"></i> Synopsis</h4>
+            <p style="line-height: 1.7; color: var(--text-secondary);">{{ movie.synopsis }}</p>
+            <div class="row mt-4">
+                <div class="col-md-6 mb-2">
+                    <strong>Director:</strong> <span class="text-secondary">{{ movie.director }}</span>
+                </div>
+                <div class="col-md-6 mb-2">
+                    <strong>Cast:</strong> <span class="text-secondary">{{ movie.cast }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Showtime Selection Section -->
+        <div class="glass-panel p-4 rounded-4 mb-4 border border-secondary">
+            <h4 class="fw-bold mb-3"><i class="bi bi-clock-history me-2 text-rose"></i> Select Showtime</h4>
+            <p class="text-muted small">Choose a session time below to book your seats.</p>
+            
+            {% if today_showtimes or tomorrow_showtimes %}
+                <!-- Today showtimes -->
+                <div class="mb-4">
+                    <h6 class="fw-bold text-white mb-2"><i class="bi bi-calendar-day me-2 text-info"></i> Today</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for showtime in today_showtimes %}
+                        <button type="button" class="btn btn-outline-info showtime-pill px-3 py-2" data-showtime-id="{{ showtime.id }}">
+                            {{ showtime.time|time:"h:i" }} {{ showtime.time|time:"A" }}
+                            <small class="d-block text-secondary text-xs" style="font-size: 0.7rem;">Screen {{ showtime.screen }}</small>
+                        </button>
+                        {% empty %}
+                        <span class="text-muted small">No shows scheduled for today.</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Tomorrow showtimes -->
+                <div class="mb-4">
+                    <h6 class="fw-bold text-white mb-2"><i class="bi bi-calendar-event me-2 text-info"></i> Tomorrow</h6>
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for showtime in tomorrow_showtimes %}
+                        <button type="button" class="btn btn-outline-info showtime-pill px-3 py-2" data-showtime-id="{{ showtime.id }}">
+                            {{ showtime.time|time:"h:i" }} {{ showtime.time|time:"A" }}
+                            <small class="d-block text-secondary text-xs" style="font-size: 0.7rem;">Screen {{ showtime.screen }}</small>
+                        </button>
+                        {% empty %}
+                        <span class="text-muted small">No shows scheduled for tomorrow.</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Main Book Ticket Button linked to selected pill -->
+                <div class="mt-4 pt-3 border-top border-secondary text-end">
+                    <a href="#" id="main-book-ticket-btn" class="btn btn-primary-custom px-5 py-3 disabled">
+                        Book Tickets <i class="bi bi-arrow-right-circle ms-2"></i>
+                    </a>
+                </div>
+            {% else %}
+                <div class="alert alert-secondary py-3">
+                    <i class="bi bi-exclamation-triangle me-2"></i> No showtimes scheduled currently for this movie. Check back soon!
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Community Reviews & Ratings -->
+        <div class="glass-panel p-4 rounded-4 mb-4 border border-secondary">
+            <h4 class="fw-bold mb-4"><i class="bi bi-chat-left-heart me-2 text-rose"></i> Reviews & Ratings</h4>
+            
+            <!-- Submit Review Form -->
+            <form action="{% url 'add_review' movie.id %}" method="post" class="mb-5 p-3 rounded bg-dark bg-opacity-50 border border-secondary">
+                {% csrf_token %}
+                <h6 class="fw-bold mb-3 text-white">Share Your Review</h6>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="review-name" class="form-label text-secondary small">Your Name</label>
+                        <input type="text" name="customer_name" id="review-name" class="form-control bg-dark border-secondary text-white" value="{% if user.is_authenticated %}{{ user.username }}{% endif %}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-secondary d-block small">Your Rating</label>
+                        <!-- Interactive Star Rating widget -->
+                        <div class="star-rating-widget">
+                            <input type="radio" id="star5" name="rating" value="5" required><label for="star5" title="5 stars">★</label>
+                            <input type="radio" id="star4" name="rating" value="4"><label for="star4" title="4 stars">★</label>
+                            <input type="radio" id="star3" name="rating" value="3"><label for="star3" title="3 stars">★</label>
+                            <input type="radio" id="star2" name="rating" value="2"><label for="star2" title="2 stars">★</label>
+                            <input type="radio" id="star1" name="rating" value="1"><label for="star1" title="1 star">★</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="review-comment" class="form-label text-secondary small">Your Comment</label>
+                    <textarea name="comment" id="review-comment" rows="3" class="form-control bg-dark border-secondary text-white" required placeholder="Amazing Visual Effects..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary-custom btn-sm px-4">Submit Review</button>
+            </form>
+
+            <!-- Reviews list -->
+            <div class="review-feed">
+                {% for review in movie.reviews.all %}
+                <div class="border-bottom border-secondary pb-3 mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="text-warning">
+                            {% if review.rating == 5 %}★★★★★{% elif review.rating == 4 %}★★★★☆{% elif review.rating == 3 %}★★★☆☆{% elif review.rating == 2 %}★★☆☆☆{% else %}★☆☆☆☆{% endif %}
+                        </span>
+                        <small class="text-muted">{{ review.created_at|date:"d M Y, h:i A" }}</small>
+                    </div>
+                    <p class="mb-1 text-light">"{{ review.comment }}"</p>
+                    <small class="text-secondary">- {{ review.customer_name }}</small>
+                </div>
+                {% empty %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-chat-quote fs-2 d-block mb-2"></i>
+                    No reviews yet. Be the first to share!
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Sidebar -->
+    <div class="col-lg-4">
+        <!-- Wishlist toggle widget -->
+        <div class="glass-panel p-4 rounded-4 mb-4 border border-secondary text-center">
+            <h5 class="fw-bold mb-3">Add to Wishlist</h5>
+            {% if movie.id|stringformat:"s" in wishlist_session %}
+            <button class="btn btn-outline-danger w-100 wishlist-toggle-btn active" data-movie-id="{{ movie.id }}">
+                <i class="bi bi-heart-fill me-2"></i> Remove from Wishlist
+            </button>
+            {% else %}
+            <button class="btn btn-outline-danger w-100 wishlist-toggle-btn" data-movie-id="{{ movie.id }}">
+                <i class="bi bi-heart me-2"></i> Save to Wishlist
+            </button>
+            {% endif %}
+        </div>
+
+        <!-- Movie Details Card -->
+        <div class="glass-panel p-4 rounded-4 mb-4 border border-secondary">
+            <h5 class="fw-bold mb-3">Movie Info</h5>
+            <ul class="list-unstyled small mb-0">
+                <li class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Genre</span>
+                    <span class="fw-medium text-end">
+                        {% for genre in movie.genres.all %}{{ genre.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                    </span>
+                </li>
+                <li class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Director</span>
+                    <span class="fw-medium text-end">{{ movie.director }}</span>
+                </li>
+                <li class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Language</span>
+                    <span class="fw-medium text-end">{{ movie.language }}</span>
+                </li>
+                <li class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Runtime</span>
+                    <span class="fw-medium text-end">{{ movie.runtime }} minutes</span>
+                </li>
+                <li class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Release Date</span>
+                    <span class="fw-medium text-end">{{ movie.release_date|date:"d F Y" }}</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap Trailer Modal popup (as requested) -->
+{% if movie.trailer_url %}
+<div class="modal fade" id="trailerModal" tabindex="-1" aria-labelledby="trailerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark border border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-white" id="trailerModalLabel">{{ movie.title }} - Trailer</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="ratio ratio-16x9">
+                    <!-- YouTube video iframe loaded dynamically in JS -->
+                    <iframe id="trailerIframe" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const showtimePills = document.querySelectorAll('.showtime-pill');
+    const mainBookBtn = document.getElementById('main-book-ticket-btn');
+
+    showtimePills.forEach(pill => {
+        pill.addEventListener('click', function () {
+            // Remove active classes
+            showtimePills.forEach(p => {
+                p.classList.remove('btn-info');
+                p.classList.add('btn-outline-info');
+            });
+
+            // Highlight selected pill
+            this.classList.remove('btn-outline-info');
+            this.classList.add('btn-info');
+
+            // Update main booking button attributes
+            const showtimeId = this.dataset.showtimeId;
+            if (showtimeId) {
+                mainBookBtn.href = `/showtime/${showtimeId}/book/`;
+                mainBookBtn.classList.remove('disabled');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

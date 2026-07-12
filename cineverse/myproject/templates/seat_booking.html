@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book Tickets - {{ showtime.movie.title }} - CineVerse{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Showtime Summary -->
+        <div class="glass-panel p-4 rounded-4 mb-4 border border-secondary">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <span class="text-rose fw-bold text-uppercase small" style="letter-spacing: 1px;">Seat Selection</span>
+                    <h2 class="fw-bold mb-1 text-white">{{ showtime.movie.title }}</h2>
+                    <p class="mb-0 text-secondary">
+                        <i class="bi bi-camera-video me-1"></i> Screen {{ showtime.screen }} &nbsp;|&nbsp; 
+                        <i class="bi bi-calendar-event me-1"></i> {{ showtime.date|date:"d M Y" }} &nbsp;|&nbsp;
+                        <i class="bi bi-clock me-1"></i> {{ showtime.time|time:"I:M p" }} &nbsp;|&nbsp;
+                        <span class="badge bg-dark border border-secondary text-info fw-bold" id="showtime-price-holder" data-price="{{ showtime.price }}">${{ showtime.price }} / Seat</span>
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <a href="{% url 'movie_detail' showtime.movie.id %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> Change Showtime
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Seat Selection Grid Column -->
+            <div class="col-lg-8 mb-4">
+                <div class="glass-panel p-4 p-md-5 rounded-4 border border-secondary text-center">
+                    
+                    <!-- Cinema Screen Graphic -->
+                    <div class="screen-container">
+                        <div class="screen-visual mb-2"></div>
+                        <span class="screen-text">Screen This Way</span>
+                    </div>
+
+                    <!-- Seat Grid Matrix -->
+                    <div class="seat-grid-container mb-4 overflow-auto py-2">
+                        <div class="seat-grid">
+                            {% for row in seat_rows %}
+                                <div class="seat-row-label">{{ row.label }}</div>
+                                {% for seat in row.seats %}
+                                    {% if seat.is_booked %}
+                                        <button class="seat-element booked" disabled title="Seat {{ seat.code }} (Booked)">
+                                            {{ seat.number }}
+                                        </button>
+                                    {% else %}
+                                        <button class="seat-element" data-seat-code="{{ seat.code }}" title="Seat {{ seat.code }}">
+                                            {{ seat.number }}
+                                        </button>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="d-flex justify-content-center gap-4 flex-wrap pt-3 border-top border-secondary">
+                        <div class="d-flex align-items-center">
+                            <span class="legend-dot legend-available me-2"></span>
+                            <span class="small text-secondary">Available</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="legend-dot legend-selected me-2"></span>
+                            <span class="small text-secondary">Selected</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="legend-dot legend-booked me-2"></span>
+                            <span class="small text-secondary">Booked</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Pricing & Contact Form Column -->
+            <div class="col-lg-4">
+                <!-- Pricing calculation Panel -->
+                <div class="glass-panel p-4 rounded-4 mb-4 border border-secondary">
+                    <h5 class="fw-bold mb-3 text-white border-bottom border-secondary pb-2">Ticket Summary</h5>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary small">Seats Selected</span>
+                        <span class="fw-bold text-white" id="selected-seats-display">None</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary small">Total Tickets</span>
+                        <span class="fw-bold text-white" id="ticket-count-display">0</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-3 border-bottom border-secondary pb-3">
+                        <span class="text-secondary small">Ticket Price</span>
+                        <span class="fw-bold text-white" id="ticket-price-display">0 × $0</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <span class="fw-bold text-white fs-5">Total Pay</span>
+                        <span class="fw-bold text-rose fs-4" id="ticket-total-display">$0</span>
+                    </div>
+                </div>
+
+                <!-- Customer Details Booking Form -->
+                <div class="glass-panel p-4 rounded-4 border border-secondary">
+                    <h5 class="fw-bold mb-3 text-white border-bottom border-secondary pb-2">Contact Details</h5>
+                    
+                    <form action="{% url 'book_seats' showtime.id %}" method="post" id="seat-booking-form">
+                        {% csrf_token %}
+                        
+                        <!-- Hidden inputs populated dynamically in JS -->
+                        <input type="hidden" name="seats" id="hidden-seats">
+                        <input type="hidden" name="total_price" id="hidden-total">
+
+                        <div class="mb-3">
+                            <label for="customer-name" class="form-label text-secondary small">Full Name</label>
+                            <input type="text" name="customer_name" id="customer-name" class="form-control bg-dark border-secondary text-white" value="{% if user.is_authenticated %}{{ user.first_name }} {{ user.last_name }}{% endif %}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="customer-phone" class="form-label text-secondary small">Phone Number</label>
+                            <input type="tel" name="customer_phone" id="customer-phone" class="form-control bg-dark border-secondary text-white" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="customer-email" class="form-label text-secondary small">Email Address</label>
+                            <input type="email" name="customer_email" id="customer-email" class="form-control bg-dark border-secondary text-white" value="{% if user.is_authenticated %}{{ user.email }}{% endif %}" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary-custom w-100 py-3 mt-2 fw-bold">
+                            Proceed to Payment
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

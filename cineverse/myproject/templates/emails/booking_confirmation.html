@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>CineVerse Booking Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f5f6;
+            margin: 0;
+            padding: 20px;
+            color: #333333;
+        }
+        .container {
+            max-width: 600px;
+            background-color: #ffffff;
+            margin: 0 auto;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+        }
+        .header {
+            background-color: #f43f5e;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+        }
+        .body {
+            padding: 30px;
+        }
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .details-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .details-table td.label {
+            font-weight: bold;
+            color: #666666;
+            width: 30%;
+        }
+        .footer {
+            background-color: #f8fafc;
+            text-align: center;
+            padding: 15px;
+            font-size: 12px;
+            color: #999999;
+            border-top: 1px solid #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>🎬 CineVerse</h2>
+            <p style="margin: 0; font-size: 14px; letter-spacing: 1px;">BOOKING CONFIRMED</p>
+        </div>
+        <div class="body">
+            <p>Dear {{ booking.customer_name }},</p>
+            <p>Thank you for choosing CineVerse! Your ticket reservation is confirmed. Please find your show details and booking reference below. We have also attached a downloadable PDF ticket to this email.</p>
+            
+            <table class="details-table">
+                <tr>
+                    <td class="label">Booking ID</td>
+                    <td style="font-weight: bold; font-family: monospace;">{{ booking.booking_id }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Movie</td>
+                    <td style="font-weight: bold;">{{ booking.showtime.movie.title }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Screen</td>
+                    <td>{{ booking.showtime.screen }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Date</td>
+                    <td>{{ booking.showtime.date|date:"d F Y" }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Time</td>
+                    <td>{{ booking.showtime.time|time:"I:M p" }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Seats</td>
+                    <td style="color: #0ea5e9; font-weight: bold;">{{ booking.seats }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Total Paid</td>
+                    <td style="color: #f43f5e; font-weight: bold;">${{ booking.total_price }}</td>
+                </tr>
+            </table>
+
+            <p style="font-size: 13px; color: #666666;">Please bring a printout or digital copy of the attached PDF ticket when arriving at the cinema. Present the QR code at the entrance gate for scanning.</p>
+        </div>
+        <div class="footer">
+            &copy; 2026 CineVerse Cinemas. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>
